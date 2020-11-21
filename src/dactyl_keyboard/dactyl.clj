@@ -18,7 +18,7 @@
 (def mount-width (+ keyswitch-width 3))
 (def mount-height (+ keyswitch-height 3))
 
-(def old-single-plate
+(def single-plate
   (let [top-wall (->> (cube (+ keyswitch-width 3) 1.5 plate-thickness)
                       (translate [0
                                   (+ (/ 1.5 2) (/ keyswitch-height 2))
@@ -39,33 +39,6 @@
            (->> plate-half
                 (mirror [1 0 0])
                 (mirror [0 1 0])))))
-
-(def alps-width 15.6)
-(def alps-notch-width 15.5)
-(def alps-notch-height 1)
-(def alps-height 13)
-
-(def single-plate
-  (let [top-wall (->> (cube (+ keyswitch-width 3) 2.2 plate-thickness)
-                      (translate [0
-                                  (+ (/ 2.2 2) (/ alps-height 2))
-                                  (/ plate-thickness 2)]))
-        left-wall (union (->> (cube 1.5 (+ keyswitch-height 3) plate-thickness)
-                              (translate [(+ (/ 1.5 2) (/ 15.6 2))
-                                          0
-                                          (/ plate-thickness 2)]))
-                         (->> (cube 1.5 (+ keyswitch-height 3) 1.0)
-                              (translate [(+ (/ 1.5 2) (/ alps-notch-width 2))
-                                          0
-                                          (- plate-thickness
-                                             (/ alps-notch-height 2))]))
-                         )
-        plate-half (union top-wall left-wall)]
-    (union plate-half
-           (->> plate-half
-                (mirror [1 0 0])
-                (mirror [0 1 0])))))
-
 
 ;;;;;;;;;;;;;;;;
 ;; SA Keycaps ;;
@@ -1228,7 +1201,6 @@
           thumb
           new-case
           teensy-support)
-   trrs-hole-just-circle
    screw-holes))
 
 (def dactyl-top-left
@@ -1238,14 +1210,10 @@
                   connectors
                   thumb
                   new-case)
-           trrs-hole-just-circle
            screw-holes)))
 
 (spit "things/switch-hole.scad"
       (write-scad single-plate))
-
-(spit "things/alps-holes.scad"
-      (write-scad (union connectors key-holes)))
 
 (spit "things/dactyl-top-right.scad"
       (write-scad dactyl-top-right))
