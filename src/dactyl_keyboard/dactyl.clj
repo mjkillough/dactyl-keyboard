@@ -1199,18 +1199,12 @@
    (union key-holes
           connectors
           thumb
-          new-case
-          teensy-support)
+          new-case)
    screw-holes))
 
 (def dactyl-top-left
   (mirror [-1 0 0]
-          (difference
-           (union key-holes
-                  connectors
-                  thumb
-                  new-case)
-           screw-holes)))
+          dactyl-top-right))
 
 (spit "things/switch-hole.scad"
       (write-scad single-plate))
