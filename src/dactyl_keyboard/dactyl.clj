@@ -867,11 +867,6 @@
                                  (thumb-place 0 -1 web-post-br))]
          thumb-inside [
                        (bottom-hull
-                        (thumb-place 0 -1/2 web-post-tr)
-                        (thumb-place 0 -1/2 web-post-br)
-                        (key-place 1 4 half-post-bl))
-
-                       (bottom-hull
                         (key-place 1 4 half-post-bl)
                         (key-place 1 4 half-post-br)
                         (case-place (- 2 1/2) 4 (translate [0 1 1] wall-sphere-bottom-front))
@@ -881,9 +876,8 @@
                         (thumb-place 0 -1 web-post-br)
                         (thumb-place 0 -1/2 web-post-br)
                         (thumb-place thumb-right-wall thumb-front-row (translate [-1 1 1] wall-sphere-bottom-front))
-                        (key-place 1 4 (translate [0 0 8.5] web-post-bl))
-                        (key-place 1 4 half-post-bl)
-                        )]]
+                        (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front))
+                        (key-place 1 4 half-post-bl))]]
      (apply union
             (concat
              front-wall
