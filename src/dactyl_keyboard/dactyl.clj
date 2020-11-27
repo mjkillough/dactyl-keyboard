@@ -785,15 +785,23 @@
          back-wall (concat
                     (for [x (range 1 6)]
                       (union
-                       (bottom-hull (case-place (- x 1/2) 0 (translate [0 -1 1] wall-sphere-bottom-back))
-                             (case-place (+ x 1/2) 0 (translate [0 -1 1] wall-sphere-bottom-back))
+                       ((if (and (>= x 1) (<= x 3)) hull bottom-hull) ; We need a little extra space in the hull on these keys
+                             (do (case-place (- x 1/2) 0 (translate [0 -1 1] wall-sphere-bottom-back)))
+                             (do (case-place (+ x 1/2) 0 (translate [0 -1 1] wall-sphere-bottom-back)))
                              (key-place x 0 web-post-tl)
                              (key-place x 0 web-post-tr))
-                       (bottom-hull (case-place (- x 1/2) 0 (translate [0 -1 1] wall-sphere-bottom-back))
+                        (bottom-hull
+                             (key-place x 0 web-post-tl)
+                             (key-place x 0 web-post-tr))
+                        (bottom-hull
+                             (key-place x 0 web-post-tl)
+                             (key-place (- x 1) 0 web-post-tr))
+                        ((if (= x 4) bottom-hull hull)
+                          (case-place (- x 1/2) 0 (translate [0 -1 1] wall-sphere-bottom-back))
                              (key-place x 0 web-post-tl)
                              (key-place (- x 1) 0 web-post-tr))))
-                    [(bottom-hull (case-place left-wall-column 0 (translate [1 -1 1] wall-sphere-bottom-back))
-                           (case-place (+ left-wall-column 1) 0  (translate [0 -1 1] wall-sphere-bottom-back))
+                    [(bottom-hull (case-place left-wall-column 0 (translate [1 -1 1.2] wall-sphere-bottom-back))
+                           (case-place (+ left-wall-column 1) 0  (translate [0 -1 1.2] wall-sphere-bottom-back))
                            (key-place 0 0 web-post-tl)
                            (key-place 0 0 web-post-tr))])
          left-wall (let [place case-place]
