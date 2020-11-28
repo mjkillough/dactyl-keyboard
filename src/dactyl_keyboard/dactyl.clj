@@ -725,6 +725,25 @@
 (def bottom-front-key-guard (->> (cube mount-width (/ mount-height 2) web-thickness)
                                  (translate [0 (/ mount-height 4) (+ (- (/ web-thickness 2)) -4.5)])))
 
+(def bottom-base-thinckess 3)
+
+; http://forum.openscad.org/How-to-get-an-outline-of-a-2D-object-tp30564p30591.html
+;
+; "The simpler case (besides a convex polygon) happens when the polygon has a
+; "visual center", that is an inner point from which all vertices can be seen
+; from inside. The solution for those cases is just to translate the polygon so
+; that the center goes to the origin, then extrude it with a scale nearly zero,
+; project it back to the xy plane and translating it back to the center."
+(defn fill-holes [center & p]
+  (union
+    (->> (translate (map - center) p)
+         (extrude-linear {:height 1 :scale 0.0001})
+         (project)
+         (translate center))
+    (->> p
+         (hull)
+         (scale [0.01 0.01 0.01]))))
+
 (def bottom-plate
   (union
    (let [shift #(translate [0 0 (+ (- web-thickness) -5)] %)
@@ -873,29 +892,44 @@
                                  (thumb-place (+ 1/2 0.05) thumb-front-row (translate [0 1 1] wall-sphere-bottom-front))
                                  (thumb-place 0 -1 web-post-bl)
                                  (thumb-place 0 -1 web-post-br))]
-         thumb-inside [
-                       (bottom-hull
-                        (key-place 1 4 half-post-bl)
-                        (key-place 1 4 half-post-br)
-                        (case-place (- 2 1/2) 4 (translate [0 1 1] wall-sphere-bottom-front))
-                        (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front)))
-
-                       (bottom-hull
-                        (thumb-place 0 -1 web-post-br)
-                        (thumb-place 0 -1/2 web-post-br)
-                        (thumb-place thumb-right-wall thumb-front-row (translate [-1 1 1] wall-sphere-bottom-front))
-                        (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front))
-                        (key-place 1 4 half-post-bl))]]
-     (apply union
-            (concat
-             front-wall
-             right-wall
-             back-wall
-             left-wall
-             thumb-back-wall
-             thumb-left-wall
-             thumb-front-wall
-             thumb-inside)))))
+         thumb-inside-wall [(bottom-hull
+                             (key-place 1 4 half-post-bl)
+                             (key-place 1 4 half-post-br)
+                             (case-place (- 2 1/2) 4 (translate [0 1 1] wall-sphere-bottom-front))
+                             (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front)))
+                            (bottom-hull
+                             (thumb-place 0 -1 web-post-br)
+                             (thumb-place 0 -1/2 web-post-br)
+                             (thumb-place thumb-right-wall thumb-front-row (translate [-1 1 1] wall-sphere-bottom-front))
+                             (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front))
+                             (key-place 1 4 half-post-bl))]
+         main-walls (apply union (concat
+                                  front-wall
+                                  right-wall
+                                  back-wall
+                                  left-wall))
+         thumb-walls (apply union (concat
+                                   thumb-back-wall
+                                   thumb-left-wall
+                                   thumb-front-wall
+                                   thumb-inside-wall))
+         walls (union main-walls thumb-walls)
+         ; The seam between the main and thumb sections.
+         ; Allows us to make each into a closed polygon.
+         seam [(bottom-hull (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front))
+                            (key-place 0 3 web-post-tl))
+               (bottom-hull (case-place (- 2 1/2) 4 (translate [0 1 1] wall-sphere-bottom-front))
+                            (case-place 0.7 4 (translate [0 1 1] wall-sphere-bottom-front)))]
+         main-base (->> (union main-walls seam)
+                        (project)
+                        (fill-holes [0 0 0]))
+         thumb-base (->> (union thumb-walls seam)
+                         (project)
+                         (fill-holes [-50 -50 0]))
+         base (->> (union main-base thumb-base)
+                   (extrude-linear {:height bottom-base-thinckess})
+                   (translate [0 0 (/ bottom-base-thinckess 2)]))]
+      (union walls base))))
 
 (def screw-hole (->> (cylinder 1.5 60)
                      (translate [0 0 3/2])
@@ -916,7 +950,7 @@
         (with-fn 50))))
 
 (def trrs-cutout
-  (translate [-32 50 5] trrs-hole))
+  (translate [-32 50 8] trrs-hole))
 
 (def usb-cutout
   (let [hole-height 6.2
@@ -928,7 +962,7 @@
     (->> (hull side-cylinder
                (mirror [-1 0 0] side-cylinder))
          (rotate (/ π 2) [1 0 0])
-         (translate [-15 50 4]))))
+         (translate [-15 50 7]))))
 
 ;;;;;;;;;;;;;;;;;;
 ;; Final Export ;;
