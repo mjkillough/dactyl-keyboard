@@ -995,6 +995,10 @@
          (rotate (/ π 2) [1 0 0])
          (translate [-15 50 7]))))
 
+(def reset-button-cutout
+  (->> (cube 7 20 7)
+       (translate [2 50 7])))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Final Export ;;
 ;;;;;;;;;;;;;;;;;;
@@ -1004,7 +1008,8 @@
    bottom-plate
    new-case
    trrs-cutout
-   usb-cutout))
+   usb-cutout
+   reset-button-cutout))
 
 (def dactyl-bottom-left
   (mirror [-1 0 0]
