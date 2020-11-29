@@ -727,6 +727,41 @@
 
 (def bottom-base-thinckess 3)
 
+(def screw-hole (->> (cylinder 1.5 60)
+                     (translate [0 0 3/2])
+                     (with-fn wall-sphere-n)))
+
+(def screw-holes
+  (union
+   (key-place (+ 4 1/2) 1/2 screw-hole)
+   (key-place (+ 4 1/2) (+ 3 1/2) screw-hole)
+   (thumb-place 2 -1/2 screw-hole)))
+
+; Base is cut out of the bottom of the case, socket is the
+; actual structure to attach a screw.
+(def screw-base-height 80)
+(def screw-base (->> (cube 12 12 screw-base-height)
+                     (translate [0 0 (- (/ screw-base-height 2))])))
+
+(def screw-socket
+  (difference screw-base
+              (->> (cube 9 9 screw-base-height)
+                   (translate [0 0 (- 0 (/ screw-base-height 2) 3)]))))
+
+(def screw-bases
+  (union
+   (key-place (+ 4 1/2) 1/2 screw-base)
+   (key-place (+ 4 1/2) (+ 3 1/2) screw-base)
+   (thumb-place 2 -1/2 screw-base)))
+
+(def screw-sockets
+  (difference
+   (union
+    (key-place (+ 4 1/2) 1/2 screw-socket)
+    (key-place (+ 4 1/2) (+ 3 1/2) screw-socket)
+    (thumb-place 2 -1/2 screw-socket))
+   screw-holes))
+
 ; http://forum.openscad.org/How-to-get-an-outline-of-a-2D-object-tp30564p30591.html
 ;
 ; "The simpler case (besides a convex polygon) happens when the polygon has a
@@ -928,18 +963,14 @@
                          (fill-holes [-50 -50 0]))
          base (->> (union main-base thumb-base)
                    (extrude-linear {:height bottom-base-thinckess})
-                   (translate [0 0 (/ bottom-base-thinckess 2)]))]
-      (union walls base))))
-
-(def screw-hole (->> (cylinder 1.5 60)
-                     (translate [0 0 3/2])
-                     (with-fn wall-sphere-n)))
-
-(def screw-holes
-  (union
-   (key-place (+ 4 1/2) 1/2 screw-hole)
-   (key-place (+ 4 1/2) (+ 3 1/2) screw-hole)
-   (thumb-place 2 -1/2 screw-hole)))
+                   (translate [0 0 (/ bottom-base-thinckess 2)]))
+         ; Intersect screw mounts with volume of base so that they don't extend outside it.
+         area (->> (union main-base thumb-base)
+                   (extrude-linear {:height 1000})
+                   (translate [0 0 500]))
+         screws (intersection area screw-sockets)
+      ]
+      (union (difference (union walls base) screw-bases) screws))))
 
 (def trrs-hole
   (let [trrs-diameter 8
